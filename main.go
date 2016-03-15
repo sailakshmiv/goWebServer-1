@@ -44,3 +44,20 @@ func query(city, string) (weatherData, error) {
 }
 
 return d, nil
+
+//we create our http handler function, 1st arg is a pattern bc it's a multiplexer that is going to match to known patterns
+http.HandleFunc("/weather/", func(w http.ResponseWriter, r * http.Request) {
+    //how we get our 'city'. We split the url path on the slash, get 3 elements? pick the second one
+    city := strings.SplitN(r.URL.Path, "/", 3) [2]
+
+    data, err := query(city)
+    //how we handle errors. if we get one...
+    if err != nil {
+        //we write to our client the error and then exit out
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    //otherwise if successful we write to client w/header set to the following we give the client our json data
+    w.Header().Set("Content-Type", "application/json; charset=utf-8")
+    json.NewEncoder(w).Encode(data)
+    })
