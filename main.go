@@ -24,3 +24,23 @@ type weatherData struct {
         //json is our tag allowing us to accss the encoding/json package
     } 'json:"main"'
 }
+
+//populate using our struct and the API with a func
+//we have a func query that takes in a city as a string and returns our weatherData structure AND error
+func query(city, string) (weatherData, error) {
+    resp, err:= http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=YOUR_API_KEY&q=" + city)
+    //if our request fails for some reason, i.e., it's not nil then return to us this err
+    if err != nil {
+        return weatherData{}, err
+    }
+    //if our GET is successful we don't close our resp body
+    defer resp.Body.Close()
+    //we then declare a var, d
+    var d weatherData
+    //call decode on our resp body with var d struct
+    if err:= json.NewDecoder(resp.Body).Decode(&d);
+        //returns to us our new weatherData w/ nil error
+        return weatherData{}, err
+}
+
+return d, nil
