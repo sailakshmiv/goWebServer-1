@@ -15,3 +15,12 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	//convert our string to bytes and when you receive an http request, write this to response
 	w.Write([]byte("hello!"))
 }
+
+//create a structure to get what we want from the API
+//we define a type, declare it as a struct
+type weatherData struct {
+    Main struct {
+        Kelvin float64 'json:"temp"'
+        //json is our tag allowing us to accss the encoding/json package
+    } 'json:"main"'
+}
