@@ -41,7 +41,7 @@ func hello(w http.ResponseWriter, r *http.Request) {
 //populate using our struct and the API with a func
 //we have a func query that takes in a city as a string and returns our weatherData structure AND error
 func query(city string) (weatherData, error) {
-	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=YOUR_API_KEY&q=" + city)
+	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=YourAPIKeyHere=" + city)
 	//if our request fails for some reason, i.e., it's not nil then return to us this err
 	if err != nil {
 		return weatherData{}, err
