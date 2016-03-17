@@ -81,7 +81,7 @@ type weatherProvider interface {
 //create a new structure just for openWeatherMap data
 new openWeatherMap struct{}
 func (w openWeatherMap) temperature(city string) (float64, error) {
-	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=YOUR_API_KEY&q=" + city)
+	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID="+ OpenWeatherApiKey +"&q=" + city)
 	//if we encounter an error exit out with the error
 	if err != nil {
 		return 0, err
@@ -101,5 +101,35 @@ func (w openWeatherMap) temperature(city string) (float64, error) {
 	//log out the following string with city and the var d's main struct Kelvin
 	log.Printf("openWeatherMap: %s: %.2f", city, d.Main.Kelvin)
 	return d.Main.Kelvin, nil
+}
+//let's create a sp. type just for Weather Underground API
+type WeatherUnderground struct {
+	WeatherUndergroundApiKey string
+}
+//make a function to handle our Weather Underground API data
+func (w WeatherUnderground) temperature(city string) (float64, error) {
+	resp, err := http.GET("http://api.wunderground.com/api/" + w.WeatherUndergroundApiKey + "/conditions/q/" + city + ".json")
+	//if we hit an error exit out with false and return to me the error
+	if err != nil {
+		return 0, err
+	}
+
+//otherwise if 200 ok don't close the response body
+	defer resp.Body.Close()
+
+//create a var d structure to hold our data, going to convert that Celsius to K
+	var d struct {
+		Observation struct {
+			Celsius float64 `json:"temp_c"`
+		} `json:"current_observation"`
+	}
+	//Decode and if you hit an error return it
+	if err:= json.NewDecoder(resp.Body).Decode(&d); err != nil {
+		return 0, err
+	}
+	//define kelvin which is var d's struct's Celsius and convert and return it
+	kelvin := d.Observation.Celsius + 273.15
+	log.Printf("weatherUnderground: %s: %.2f", city, kelvin)
+	return kelvin, nil
 }
 
