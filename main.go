@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -41,7 +42,10 @@ func hello(w http.ResponseWriter, r *http.Request) {
 //populate using our struct and the API with a func
 //we have a func query that takes in a city as a string and returns our weatherData structure AND error
 func query(city string) (weatherData, error) {
-	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=YourAPIKeyHere=" + city)
+	OpenWeatherApiKey := os.Getenv("OpenWeather_API_KEY")
+	WeatherUndergroundApiKey := os.Getenv("Weather_Underground_API_KEY")
+
+	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=" + OpenWeatherApiKey + "&q=" + city)
 	//if our request fails for some reason, i.e., it's not nil then return to us this err
 	if err != nil {
 		return weatherData{}, err
@@ -68,3 +72,10 @@ type weatherData struct {
 		//json is our tag allowing us to accss the encoding/json package
 	} `json:"main"`
 }
+
+//let's create a general provider interface for multiple apis
+// type weatherProvider interface {
+// 	temperature(city, string) (float64, error)
+// }
+
+//new struct{}
