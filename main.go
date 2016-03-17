@@ -73,9 +73,33 @@ type weatherData struct {
 	} `json:"main"`
 }
 
-//let's create a general provider interface for multiple apis
-// type weatherProvider interface {
-// 	temperature(city, string) (float64, error)
-// }
+//let's create a general provider interface for multiple apis, OpenWeather/WeatherUnderground–whatever
+type weatherProvider interface {
+	temperature(city, string) (float64, error)
+}
 
-//new struct{}
+//create a new structure just for openWeatherMap data
+new openWeatherMap struct{}
+func (w openWeatherMap) temperature(city string) (float64, error) {
+	resp, err := http.Get("http://api.openweathermap.org/data/2.5/weather?APPID=YOUR_API_KEY&q=" + city)
+	//if we encounter an error exit out with the error
+	if err != nil {
+		return 0, err
+	}
+	//if we are 200 OK don't close
+	defer resp.Body.Close()
+	//define a var d structure that'll hold our resp data
+	var d struct {
+		Main struct {
+			Kelvin float64 `json:"temp"`
+		} `json:"main"`
+	}
+	//now decode that json resp body and if we encounter an error exit out w/error
+	if err:= json.NewDecoder(resp.Body).Decode(&d); err != nil {
+		return 0, err
+	}
+	//log out the following string with city and the var d's main struct Kelvin
+	log.Printf("openWeatherMap: %s: %.2f", city, d.Main.Kelvin)
+	return d.Main.Kelvin, nil
+}
+
