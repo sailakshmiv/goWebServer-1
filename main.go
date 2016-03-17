@@ -133,3 +133,55 @@ func (w WeatherUnderground) temperature(city string) (float64, error) {
 	return kelvin, nil
 }
 
+//now that we have both APIs taken care of average out the temps and return it
+func temperature(city string, providers ...weatherProvider) (float64, error) {
+	//sum is our 'counter' var
+	sum := 0.0
+
+	//for loop--the only loop in Go. We memo out the initializer and put in provider as the range
+	for _, provider := range providers {
+		//take each provider's temp for a city param
+		k, err := provider.temperature(city)
+		//if we hit an error exit out return false/error
+		if err != nil {
+			return 0, err
+		}
+		//otherwise if ok, we add the kelvin temp for that city to sum
+		sum += k
+	}
+	//when done with loop we avg out the temps and return it
+	return sum / float64(len(providers)), nil
+}
+
+//create a func in main to query both apis and output formatted data
+func main () {
+	//not sure...assign a var with the a sp. interface and the two apis...?
+	mw := multiWeatherProvider {
+		openWeatherMap{},
+		weatherUnderground{},
+	}
+
+	//write our handle func for the weather resource and our call back type func
+	http.HandleFunc("/weather/", func(w http.ResponseWriter, r *http.Request) {
+		//define some vars we'll need
+		begin := time.Now()
+		city := strings.SplitN(r.url.Path, "/", 3)[2]
+		//we get the temp for each city we request
+		temp, err := mw.temperature(city)
+		//our error handling
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		//otherwise if ok we do the following: we set our headers
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		//we Encode not Decode here, bc we're writing JSON mapping over every interface: our 2 apis in teh following format
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"city": city,
+			"temp": temp, 
+			"took": time.Since(begin).String(),
+			})
+		})
+	//self explanatory
+	http.ListenAndServe(":8080", nil)
+}
